@@ -12,14 +12,13 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _auth = FirebaseAuth.instance;
+  bool isLoading = false;
 
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -30,36 +29,44 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  void _signup() async{
+  void _signup() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true;
+        isLoading = true;
       });
-
-    try {
-      final userCredential = await _auth.createUserWithEmailAndPassword(email: _emailController.text.trim(), password: _passwordController.text.trim());
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Signup Successful! Please Login')));
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen(),));
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${e.message}')));
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      try {
+        UserCredential userCredential = await _auth
+            .createUserWithEmailAndPassword(
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
+            );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Signup Successful! Please Login')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      } on FirebaseAuthException catch (e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.message}')));
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Signup'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text('Signup'), centerTitle: true),
       body: SingleChildScrollView(
-        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-         child:  Form(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+          child: Form(
             key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -68,7 +75,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: _fullNameController,
                   decoration: InputDecoration(
                     hint: Text('Full Name'),
-                    prefixIcon: Icon(Icons.person_2_outlined)
+                    prefixIcon: Icon(Icons.person_2_outlined),
                   ),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -77,6 +84,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     return null;
                   },
                 ),
+
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
@@ -90,15 +98,17 @@ class _SignupScreenState extends State<SignupScreen> {
                     return null;
                   },
                 ),
+
                 TextFormField(
                   controller: _passwordController,
                   decoration: InputDecoration(
                     hint: Text('Password'),
-                    prefixIcon: Icon(Icons.password_outlined)
+                    prefixIcon: Icon(Icons.password_outlined),
                   ),
-                  validator:(value) {
+                  obscureText: true,
+                  validator: (value) {
                     if (value!.isEmpty) {
-                      return 'Password';
+                      return 'Enter Password';
                     }
                     if (value.length < 8) {
                       return 'Password Must be 8 Chahacter Long';
@@ -106,38 +116,52 @@ class _SignupScreenState extends State<SignupScreen> {
                     return null;
                   },
                 ),
+
                 TextFormField(
                   controller: _confirmPasswordController,
                   decoration: InputDecoration(
                     hint: Text('Confirm Password'),
-                    prefixIcon: Icon(Icons.password_outlined)
+                    prefixIcon: Icon(Icons.password_outlined),
                   ),
+                  obscureText: true,
                   validator: (value) {
                     if (value!.isEmpty) {
                       return 'Confirm Password';
                     }
+                    if (value != _passwordController.text) {
+                      return 'Passwords do not match';
+                    }
+                    
                     return null;
-                  },
+                  }
                 ),
-              SizedBox(
-                height: 30,
-              ),
-              RoundButton(
-                title: 'Signup', 
-                onTap: _signup,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('If Already hava an account'),
-                  TextButton(onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(),));
-                  }, 
-                  child: Text('Login')
-                  ),
-                ],
-              )
-            ],
+
+                SizedBox(height: 30),
+
+                RoundButton(
+                  title: 'Signup',
+                  onTap: _signup,
+                  isLoading: isLoading,
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('If Already hava an account'),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LoginScreen(),
+                          ),
+                        );
+                      },
+                      child: Text('Login'),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),

@@ -1,4 +1,4 @@
-import 'package:e_commerce_app_with_bloc/views/auth/home/home_page_screen.dart';
+import 'package:e_commerce_app_with_bloc/core/services/splash_service.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -9,16 +9,18 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final splashService = SplashService();
+  
+  @override
+  void initState() {
+    super.initState();
+    splashService.isLogin(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: TextButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => HomePageScreen()),
-          );
-        },
+    return Scaffold(
+      body: Center(
         child: Text(
           "E-Commerce",
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
